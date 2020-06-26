@@ -10,7 +10,7 @@ Compilation:
 
 Example:
 
-`make includepath="/g/software/linux/pack/fftw-3.3.4/include" libpath="/g/software/linux/pack/fftw-3.3.4/lib /g/software/linux/pack/fftw-3.1.2/lib64" cudapath="/g/easybuild/x86_64/CentOS/7/haswell/software/CUDA/9.1.85"`
+`make includepath="/path/to/openmpi/OpenMPI/2.1.1/include /path/to/fftw/fftw-3.3.4/include" libpath="/usr/lib /path/to/fftw/fftw-3.3.4/lib /path/to/fftw/fftw-3.1.2/lib64" cudapath="/path/to/cuda/CUDA/9.1.85"`
 
 Run with CPU parallelization:
 
