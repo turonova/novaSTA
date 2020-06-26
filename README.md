@@ -16,7 +16,7 @@ Run with CPU parallelization:
 
 `mpirun -n #numbeOfCores novaSTA -param parameter_file.txt`
 
-Run on GPU:
+Run on GPU(s):
 
 `./novaSTA -param parameter_file.txt -useGPU 1`
 
