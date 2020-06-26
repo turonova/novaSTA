@@ -1,7 +1,7 @@
 IDIR=${CURDIR}/src
 
 	
-program=tomsa
+program=novaSTA
 
 SOURCES := $(shell find $(IDIR) -name '*.cpp')
 SOURCES +=$(shell find $(IDIR) -name '*.cu')
