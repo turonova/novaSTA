@@ -4,7 +4,7 @@ C++ version of subtomogram averaging (SA) scripts from TOM/AV3 package [https://
 
 The program requires both CUDA and OpenMP libraries and was tested with foss 2017b and CUDA 9.1.85. 
 
-Compilation:
+Install:
 
 `make includepath="path_include_files" libpath="path_to_libraries" cudapath="path_to_cuda_include_files"`
 
