@@ -153,7 +153,7 @@ float sa_Alignment::computeAddaptiveFilter()
 	float lowPass;
 	if(currentFscValue>EPS)
 	{
-		lowPass = ceil(params.VolumeSize()*params.PixelSize()/currentFscValue) +  fabs(params.LowPass()[rotationAndFilterIndex]);
+		lowPass = ceil(params.VolumeSize()*params.PixelSize()/currentFscValue) -  fabs(params.LowPass()[rotationAndFilterIndex]);
 	}
 	else
 	{
@@ -183,25 +183,52 @@ void sa_Alignment::computeFSC(vector<float>& evenVolume, vector<float>& oddVolum
 	}
 }
 
+
+
 void sa_Alignment::postprocessMotl(unsigned int iteration)
 {
-    string motlName=createName(params.MotlOriginalName(), iteration, ".em");
+    if (!params.PostprocessMotl())
+        return;
 
+    string motlName=createName(params.MotlOriginalName(), iteration, ".em");
+    string origMotlName = createName(params.MotlOriginalName(), iteration, "_before_post_processing.em");
+
+    Motl* ppMotl = new Motl(motlName, 6);
+
+    ppMotl->writeFullData(origMotlName);
+    
+    size_t nPaticlesBeforePostprocess = ppMotl->getNumberOfAllParticles();
+    size_t nParticlesAfterPostprocess;
+
+    if (params.ComputeAngularDistance() > 0)
+    {
+        StructureGeometry* geom = StructureGeometry::create(params);
+        ppMotl->computeAngularDistance(*geom);
+        logger.printOut(geom->getDescription());
+        logger.printOut("Number of particles is " + to_string(ppMotl->getNumberOfAllParticles()));
+        delete geom;
+    }
 
     if(params.CleanByDistance())
     {
-        Motl* featureSplit = new Motl(motlName,6);
-        string outputMotlName = createName(params.MotlOriginalName(), iteration, "_cleaned_by_distance.em");
-
-        featureSplit->cleanByDistance(params.DistanceThreshold());
-        featureSplit->writeFullData(outputMotlName);
+        ppMotl->cleanByDistance(params.DistanceThreshold());
 
         logger.printOut("\n\nParticles in motl were cleaned by distance threshold of " + to_string(params.DistanceThreshold()) + " voxels.");
-        logger.printOut("Number of particles after the distance cleaning is " + to_string(featureSplit->getNumberOfAllParticles()));
-        logger.printOut("Cleaned motl saved as " + outputMotlName);
-
-        delete featureSplit;
+        logger.printOut("Number of particles after the distance cleaning is " + to_string(ppMotl->getNumberOfAllParticles()));
     }
+
+    if (params.UnifyClassNumber() > 0)
+    {
+        ppMotl->unifyClassNumber(params.UnifyClassNumber());
+        logger.printOut("The class of all particles in the motl was set to " + to_string(params.UnifyClassNumber()));
+    }
+
+    ppMotl->writeFullData(motlName);
+
+    logger.printOut("The motl before post-processing was saved as " + origMotlName);
+    logger.printOut("The final motl was saved as " + motlName);
+
+    delete ppMotl;
 }
 
 void sa_Alignment::copySubtomos()
@@ -247,6 +274,22 @@ void sa_Alignment::updateConvergenceStats(vector<float>& oldShift, vector<float>
     convergenceStats[3] += angle*angle;
     convergenceStats[4] += distance*distance;
     convergenceStats[5] += (newPhi-oldPhi)*(newPhi-oldPhi);
+}
+
+unsigned int sa_Alignment::getRotationType()
+{
+    unsigned int rotationType;
+    
+    if (params.UseRosemanCC() && params.CcMaskIsSphere())
+        rotationType = 6;
+    else  if (params.UseRosemanCC())
+        rotationType = 3;
+    else if (params.CcMaskIsSphere())
+        rotationType = 5;
+    else
+        rotationType=2;
+   
+    return rotationType;
 }
 
 void sa_Alignment::initVaribales()

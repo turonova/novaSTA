@@ -42,6 +42,7 @@ public:
     void update(vector<float>& newData);
 
     void initWithValue(float value);
+	void initWithCCMask(vector<float>& ccMask);
 
 protected:
     

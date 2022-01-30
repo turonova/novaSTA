@@ -43,6 +43,8 @@ protected:
     void setRotations();
     void setBandPassFilter();
 
+	unsigned int getRotationType();
+	
     bool runAlignment(unsigned int iteration);
 
     void computeFSC(vector<float>& evenVolume, vector<float>& oddVolume,unsigned int iteration);

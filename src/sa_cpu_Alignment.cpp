@@ -101,12 +101,14 @@ void sa_cpu_Alignment::align(unsigned int iteration)
     subtomo->initWithValue(0.0f);
     ref->initWithValue(0.0f);
 
+	if(params.CcMaskIsSphere())
+		ref->initWithCCMask(ccMask->Data());
+	
+	
     vector<float> ccf(volSize);
     vector<float> shift(3);
 
-    unsigned int rotationType = 2;
-    if (params.UseRosemanCC())
-        rotationType = 3;
+    unsigned int rotationType = getRotationType();
 
     for (size_t m = 0; m < motl->Data().size(); m++ )
     {

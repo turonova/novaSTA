@@ -171,9 +171,26 @@ void Quaternion::getAxisAngle(float& angle, vector<float>& axis)
     }
 }
 
-float Quaternion::jointAngle(Quaternion& q1,Quaternion& q2)
+float Quaternion::jointAngle(Quaternion& q1, Quaternion& q2, bool keepLargeAngle)
 {
     float angle = q1.w*q2.w + q1.i*q2.i +q1.j*q2.j +q1.k*q2.k;
+
+    if (angle < 0)
+    {
+        if (!keepLargeAngle)
+        {
+            q2 = -q2;
+            angle = -angle;
+        }
+    }
+    else
+    {
+        if (keepLargeAngle)
+        {
+            q2 = -q2;
+            angle = q1.w*q2.w + q1.i*q2.i + q1.j*q2.j + q1.k*q2.k;
+        }
+    }
 
     angle = acos(angle);
 
@@ -192,10 +209,22 @@ Quaternion Quaternion::operator+(Quaternion& q)
 {
     Quaternion res;
 
-    res.w*=q.w + w;
-    res.i*=q.i + i ;
-    res.j*=q.j + j;
-    res.k*=q.k + k;
+    res.w=q.w + w;
+    res.i=q.i + i ;
+    res.j=q.j + j;
+    res.k=q.k + k;
+
+    return res;
+}
+
+Quaternion Quaternion::operator-()
+{
+    Quaternion res;
+
+    res.w = - w;
+    res.i = - i;
+    res.j = - j;
+    res.k = - k;
 
     return res;
 }
@@ -260,12 +289,12 @@ vector<float> Quaternion::pointRotate(vector<float>& point)
 
 void Quaternion::normalize()
 {
-    float size = sqrt(w*w + i*i + j*j + k*k);
+    float size_q = sqrt(w*w + i*i + j*j + k*k);
 
-    w/=size;
-    i/=size;
-    j/=size;
-    k/=size;
+    w /= size_q;
+    i /= size_q;
+    j /= size_q;
+    k /= size_q;
 }
 
 bool Quaternion::isEqual(Quaternion& q)
@@ -324,13 +353,15 @@ void Quaternion::getRotationMatrix(vector<float>& matrix)
     matrix[8] = 1.0f - 2.0f*(i*i + j*j);*/
 }
 
-void Quaternion::slerp(vector<Quaternion>& output, Quaternion& q1, Quaternion& q2, float stepSize,float interpolationLimit)
+void Quaternion::slerp(vector<Quaternion>& output, Quaternion q1, Quaternion q2, float stepSize, float interpolationLimit, bool keepLargeAngle)
 {
 
-    float angler=jointAngle(q1,q2);
+    float angler=jointAngle(q1,q2,keepLargeAngle);
 
     if(fabs(angler/(2*M_PI))<EPS)
         return;
+    
+
     double s;
     for( s = 0; s<interpolationLimit-EPS; s += stepSize)
     {
@@ -465,3 +496,21 @@ void Quaternion::generateConeRotations(vector<Quaternion>& rotations, vector<flo
         }
     }
 }
+
+vector<float> Quaternion::getNormalVector()
+{
+    vector<float> point = { 0, 0, 1 };
+    vector<float> normal = pointRotate(point);
+
+    vr::normalize(normal);
+
+    return normal;
+}
+
+vector<float> Quaternion::getNormalVectorFromEulerAngles(float psi, float theta)
+{
+    Quaternion q(0.0f, psi, theta);
+
+    return q.getNormalVector();
+}
+

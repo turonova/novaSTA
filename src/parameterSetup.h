@@ -6,6 +6,7 @@
 
 using namespace std;
 
+
 template <typename paramType>
 struct inputParameter
 {
@@ -116,8 +117,15 @@ public:
 
     float InterpolationSigma();
 
-	bool ComputeFSC();
-	
+    bool ComputeFSC();
+    bool CcMaskIsSphere();
+
+    unsigned int StructGeomType();
+    unsigned int ComputeAngularDistance();
+    vector<float> AngularDistanceThresholds();
+    unsigned int UnifyClassNumber();
+    bool PostprocessMotl();
+
 private:
 
     void initVariables();
@@ -133,6 +141,8 @@ private:
     void checkParamSetup();
     void wrongParameterCombination();
     void parameterNotSetError(string paramName);
+
+    void checkPostProcessingSetup();
 
     string getFilename(string path);
     string createBaseName(string folder, string filename);
@@ -189,8 +199,15 @@ private:
     unsigned int interpolationType;
     float interpolationSigma;
 
-	bool computeFSC;
-	
+    bool computeFSC;
+    bool ccMaskIsSphere;
+
+    unsigned int structGeomType;
+    unsigned int computeAngularDistance;
+    unsigned int unifyClassNumber;
+
+    bool postprocessMotl;
+
     // parameters without default values
     inputParameter<string> motlName = inputParameter<string>("motl");
     inputParameter<string> folderName = inputParameter<string>("folder");
@@ -222,4 +239,5 @@ private:
     inputParameter<float> pixelSize = inputParameter<float>("pixelSize");
 
     inputParameter<float> distanceThreshold = inputParameter<float>("distanceThreshold");
+    inputParameter<vector<float>> angularDistanceThresholds = inputParameter<vector<float>>("angularDistanceThresholds");
 };

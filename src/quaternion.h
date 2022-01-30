@@ -22,7 +22,7 @@ public:
     static void generateConeRotations(vector<Quaternion>& rotations,float coneAngle, float coneSampling, float inplaneAngle, float inplaneSampling);
     static void generateConeRotations(vector<Quaternion>& rotations, vector<float>& phiAngles, float coneAngle, float coneSampling, float inplaneAngle, float inplaneSampling);
 
-    static void slerp(vector<Quaternion>& output, Quaternion& q1, Quaternion& q2, float stepSize, float interpolationLimit = 1.0f);
+    static void slerp(vector<Quaternion>& output, Quaternion q1, Quaternion q2, float stepSize, float interpolationLimit = 1.0f, bool keepLargeAngle=false);
 
     static Quaternion mult(Quaternion& q1,Quaternion& q2);
     vector<float> rotate(Quaternion& q,vector<float>& point);
@@ -31,7 +31,7 @@ public:
     void getRotationMatrix(vector<float>& matrix);
 
     void normalize();
-    static float jointAngle(Quaternion& q1,Quaternion& q2);
+    static float jointAngle(Quaternion& q1,Quaternion& q2,bool keepLargeAngle=false);
     static Quaternion add(Quaternion& q1, Quaternion& q2);
     static Quaternion mult(Quaternion& q1, float value);
     vector<float> getEulerAngles();
@@ -40,6 +40,9 @@ public:
     static void getAngularDistance(Quaternion q1, Quaternion q2, float& angleInDegrees, float& distance);
 
     bool isEqual(Quaternion& q);
+
+    vector<float> getNormalVector();
+    static vector<float> getNormalVectorFromEulerAngles(float psi, float theta);
 
     float w;
     float i;
@@ -50,5 +53,6 @@ private:
 
     void operator*(float value);
     Quaternion operator+(Quaternion& q);
+    Quaternion operator-();
 
 };

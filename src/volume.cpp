@@ -288,6 +288,14 @@ void Volume::initWithValue(float value)
     rotatedCCMask.resize(dim[0]*dim[1]*dim[2], value);
 }
 
+void Volume::initWithCCMask(vector<float>& ccMask)
+{
+	for(size_t i=0; i<rotatedCCMask.size();i++)
+	{
+		rotatedCCMask[i]=ccMask[i];
+	}
+}
+
 void Volume::rotate(Quaternion& q)
 {
     vector<float> rm;
@@ -417,7 +425,8 @@ void Volume::rotate(Quaternion& q, vector<float>& mask, vector<float>& ccMask, u
                     {
                         rotated[outputIndex] = 0.0f;
                         rotatedMask[outputIndex] = 0.0f;
-                        rotatedCCMask[outputIndex] = 0.0f;
+						if(rotationType != 5 && rotationType != 6)
+							rotatedCCMask[outputIndex] = 0.0f;
                     }
 
                     continue;
@@ -430,7 +439,8 @@ void Volume::rotate(Quaternion& q, vector<float>& mask, vector<float>& ccMask, u
                     {
                         rotated[outputIndex] = 0.0f;
                         rotatedMask[outputIndex] = 0.0f;
-                        rotatedCCMask[outputIndex] = 0.0f;
+						if(rotationType != 5 && rotationType != 6)
+							rotatedCCMask[outputIndex] = 0.0f;
                     }
 
                     continue;
@@ -443,7 +453,8 @@ void Volume::rotate(Quaternion& q, vector<float>& mask, vector<float>& ccMask, u
                     {
                         rotated[outputIndex] = 0.0f;
                         rotatedMask[outputIndex] = 0.0f;
-                        rotatedCCMask[outputIndex] = 0.0f;
+						if(rotationType != 5 && rotationType != 6)
+							rotatedCCMask[outputIndex] = 0.0f;
                     }
 
                     continue;
@@ -474,26 +485,51 @@ void Volume::rotate(Quaternion& q, vector<float>& mask, vector<float>& ccMask, u
                 /* the following section detects border pixels to avoid exceeding dimensions */
                 size_t inputIndex = floorx + floory * dim[0] + floorz * sxy;
                            
-                if (rotationType == 1)
+						   
+                /*if (rotationType == 1)	// just averaging, mask is a wedge mask that should be binarized
                 {
                     rotated[outputIndex] += interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
                     rotatedMask[outputIndex] += binarizeMask(interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2));
                 }
-                else if (rotationType == 4)
+                else if (rotationType == 4)	// just averaging, mask is a wedge mask without binarization
                 {
                     rotated[outputIndex] += interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
                     rotatedMask[outputIndex] += interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
                 }
-                else
+                else// 2,3,5,6; alignment - rotation type 2 is without Roseman CC and thus does not rotated the normal mask; 3 is with Roseman
                 {
                     rotated[outputIndex] = interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
-                    rotatedCCMask[outputIndex] = interpolation(ccMask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
-                }
+                    
+					if(rotationType!=5 && rotationType!=6) // 5 is for normal alignment and spherical CC mask; 6 is for Roseman and spherical CC mask
+						rotatedCCMask[outputIndex] = interpolation(ccMask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+						
+					if (rotationType == 3 || rotationType==6)
+						rotatedMask[outputIndex] = binarizeMask(interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2));
+                }*/
+				
+				switch (rotationType)
+				{
+					case 1: {rotated[outputIndex] += interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							rotatedMask[outputIndex] += binarizeMask(interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2));
+							break;}
+					case 2: {rotated[outputIndex] = interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							rotatedCCMask[outputIndex] = interpolation(ccMask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							break;}
+					case 3: {rotated[outputIndex] = interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							rotatedCCMask[outputIndex] = interpolation(ccMask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							rotatedMask[outputIndex] = binarizeMask(interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2));
+							break;}
+					case 4: {rotated[outputIndex] += interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							rotatedMask[outputIndex] += interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							break;}
+					case 5: {rotated[outputIndex] = interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							break;}
+					case 6: {rotated[outputIndex] = interpolation(data, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2);
+							rotatedMask[outputIndex] = binarizeMask(interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2));
+							break;}
+					default: { cout << rotationType << endl; break;}
+				}
 
-                if (rotationType == 3)
-                {
-                    rotatedMask[outputIndex] = binarizeMask(interpolation(mask, inputIndex, vx1, vx2, vy1, vy2, vz1, vz2));
-                }
             }
         }
     }

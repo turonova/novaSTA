@@ -60,6 +60,7 @@ string ParameterSetup::createBaseName(string folder, string filename)
 
 void ParameterSetup::checkParamSetup()
 {
+    
     if(!numberOfIterations.set)
         parameterNotSetError(numberOfIterations.name);
 
@@ -101,7 +102,7 @@ void ParameterSetup::checkParamSetup()
     else
         wrongParameterCombination();
 
-	
+
     if(lowPass.set && highPass.set && highPass.value.size()==lowPass.value.size())
     {
         if(lowPass.value.size()!=1 && lowPass.value.size()!=numberOfIterations.value)
@@ -122,19 +123,19 @@ void ParameterSetup::checkParamSetup()
         {
             changingBandPass=true;
         }
-		
-		for(unsigned int i = 0; i< lowPass.value.size(); i++)
-		{
-			if (lowPass.value[i] <= 0)
-			{
-				changingBandPass=true;
-				if(!splitIntoEvenOdd || !createReference || !computeFSC)
-				{
-					cout << endl << "ERROR: Addaptive filter can be only used with splitIntoEvenOdd set to 1 and createReference set to 1 !!!" << endl;
-					exit(EXIT_FAILURE);
-				}
-			}
-		}
+
+        for(unsigned int i = 0; i< lowPass.value.size(); i++)
+        {
+            if (lowPass.value[i] <= 0)
+            {
+                changingBandPass=true;
+                if(!splitIntoEvenOdd || !createReference || !computeFSC)
+                {
+                    cout << endl << "ERROR: Addaptive filter can be only used with splitIntoEvenOdd set to 1 and createReference set to 1 !!!" << endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
     }
     else
         wrongParameterCombination();
@@ -164,6 +165,7 @@ void ParameterSetup::setInternalParameters()
     if(copySubtomograms)
         copySubtomoName =TempSubtomoFolder() + "/" + getFilename(SubtomoName());
 
+    
     motlOriginalName = motlBaseName;
     stringstream logFile;
 
@@ -171,6 +173,23 @@ void ParameterSetup::setInternalParameters()
     logFile << folderName.value << "/" << "log_ref" << startingIndex.value << "_to_ref" << endingIndex << ".txt";
 
     logFileName = logFile.str();
+
+}
+
+void ParameterSetup::checkPostProcessingSetup()
+{
+    if (unifyClassNumber > 0 || computeAngularDistance > 0 || cleanByDistance)
+        postprocessMotl = true;
+    else
+    {
+        postprocessMotl = false;
+        return;
+    }
+  
+    if (computeAngularDistance > 1 && !angularDistanceThresholds.set)
+    {
+        parameterNotSetError(angularDistanceThresholds.name);
+    }
 
 }
 
@@ -478,12 +497,20 @@ void ParameterSetup::storeValues(string paramName, string paramValue, char separ
     }
     else if (paramName == distanceThreshold.name)
     {
-        distanceThreshold.value = (size_t) atof(paramValue.c_str());
+        distanceThreshold.value = atof(paramValue.c_str());
         distanceThreshold.set = true;
     }
     else if (paramName == "cleanByDistance")
     {
         cleanByDistance = atoi(paramValue.c_str());
+    }
+    else if (paramName == "computeAngularDistance")
+    {
+        computeAngularDistance = atoi(paramValue.c_str());
+    }
+    else if (paramName == "unifyClassNumber")
+    {
+        unifyClassNumber = atoi(paramValue.c_str());
     }
     else if (paramName == "renumberParticles")
     {
@@ -514,6 +541,11 @@ void ParameterSetup::storeValues(string paramName, string paramValue, char separ
     {
         parseFloats(paramValue,highPass.value,separator);
         highPass.set = true;
+    }
+    else if (paramName == angularDistanceThresholds.name)
+    {
+        parseFloats(paramValue, angularDistanceThresholds.value, separator);
+        angularDistanceThresholds.set = true;
     }
     else if (paramName == "useRosemanCC")
     {
@@ -581,9 +613,17 @@ void ParameterSetup::storeValues(string paramName, string paramValue, char separ
     {
         copySubtomograms = atoi(paramValue.c_str());
     }
-	else if ( paramName == "computeFSC")
+    else if ( paramName == "computeFSC")
     {
         computeFSC = atoi(paramValue.c_str());
+    }
+    else if ( paramName == "ccMaskIsSphere")
+    {
+        ccMaskIsSphere = atoi(paramValue.c_str());
+    }
+    else if (paramName == "structureGeometry")
+    {
+        structGeomType = atoi(paramValue.c_str());
     }
     else if ( paramName == "tempSubtomoFolder")
     {
@@ -635,7 +675,12 @@ void ParameterSetup::initVariables()
     interpolationType = 0;
     interpolationSigma = 0.3f;
 
-	computeFSC = true;
+    computeFSC = true;
+    ccMaskIsSphere = false;
+
+    structGeomType = 0;
+    computeAngularDistance = 0;
+    unifyClassNumber = 0;
 }
 
 ParameterSetup::ParameterSetup(std::vector<string> argList)
@@ -661,6 +706,7 @@ ParameterSetup::ParameterSetup(std::vector<string> argList)
     {
         checkParamSetup();
         setInternalParameters();
+        checkPostProcessingSetup();
     }
 }
 
@@ -1050,5 +1096,38 @@ float ParameterSetup::InterpolationSigma()
 
 bool ParameterSetup::ComputeFSC()
 {
-	return computeFSC;
+    return computeFSC;
+}
+
+bool ParameterSetup::CcMaskIsSphere()
+{
+    return ccMaskIsSphere;
+}
+
+unsigned int ParameterSetup::StructGeomType()
+{
+    return structGeomType;
+}
+
+unsigned int ParameterSetup::ComputeAngularDistance()
+{
+    return computeAngularDistance;
+}
+
+unsigned int ParameterSetup::UnifyClassNumber()
+{
+    return unifyClassNumber;
+}
+
+vector<float> ParameterSetup::AngularDistanceThresholds()
+{
+    if (!angularDistanceThresholds.set)
+        parameterNotSetError(angularDistanceThresholds.name);
+
+    return angularDistanceThresholds.value;
+}
+
+bool ParameterSetup::PostprocessMotl()
+{
+    return postprocessMotl;
 }

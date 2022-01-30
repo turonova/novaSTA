@@ -70,6 +70,27 @@ float MPIRoutines::reduceFloatNumber(float partialNumber, MPI_Comm activeComm)
     return reducedNumber;
 }
 
+
+
+size_t MPIRoutines::reduceSizeTNumber(size_t partialNumber, MPI_Comm activeComm)
+{
+    int processID;
+    int numberOfProcesses;
+
+    MPI_Comm_rank(activeComm, &processID);
+    MPI_Comm_size(activeComm, &numberOfProcesses);
+
+    return reduceSizeTNumber(partialNumber, processID, numberOfProcesses, activeComm);
+}
+
+size_t MPIRoutines::reduceSizeTNumber(size_t partialNumber, int processID, int numberOfProcesses, MPI_Comm activeComm)
+{
+    size_t reducedNumber;
+    MPI_Reduce(&partialNumber, &reducedNumber, 1, MPI_LONG_LONG_INT, MPI_SUM, 0, activeComm);
+
+    return reducedNumber;
+}
+
 int MPIRoutines::reduceNumber(int partialNumber, MPI_Comm activeComm)
 {
     int processID;

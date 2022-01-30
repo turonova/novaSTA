@@ -24,6 +24,8 @@ public:
     static int reduceNumber(int partialNumber,int processID, int numberOfProcesses, MPI_Comm activeComm = MPI_COMM_WORLD);
     static int reduceNumber(int partialNumber, MPI_Comm activeComm = MPI_COMM_WORLD);
     static float reduceFloatNumber(float partialNumber, MPI_Comm activeComm = MPI_COMM_WORLD);
+    static size_t reduceSizeTNumber(size_t partialNumber, MPI_Comm activeComm = MPI_COMM_WORLD);
+    static size_t reduceSizeTNumber(size_t partialNumber, int processID, int numberOfProcesses, MPI_Comm activeComm = MPI_COMM_WORLD);
 
     static void bcastFloatNumber(float& number, MPI_Comm activeComm = MPI_COMM_WORLD);
 	static void bcastBoolean(bool& value, MPI_Comm activeComm = MPI_COMM_WORLD);

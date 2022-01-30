@@ -266,6 +266,42 @@ void Motl::cleanByDistance(float distanceThreshold)
     cleanClass(-3);
 }
 
+void Motl::unifyClassNumber(int newClassNumber)
+{
+    size_t particleOffset = 0;
+
+   /* for (size_t f = 0; f<numberOfFeatures; f++)
+    {
+        for (size_t p = particleOffset; p<numberOParticlesPerFeature[f] + particleOffset; p++)
+        {
+            data[p].classNumber = newClassNumber;
+        }
+        particleOffset += numberOParticlesPerFeature[f];
+    }*/
+
+    for (size_t p = 0; p<data.size(); p++)
+    {
+        data[p].classNumber = newClassNumber;
+    }
+}
+
+void Motl::computeAngularDistance(StructureGeometry& structureGeom)
+{
+    size_t particleOffset = 0;
+
+    for (size_t f = 0; f<numberOfFeatures; f++)
+    {
+        vector<MotlEntry>::iterator it = data.begin() + particleOffset;
+        
+        structureGeom.initStructure(it, numberOParticlesPerFeature[f]);
+        structureGeom.computeAngularDistance();
+        structureGeom.clearStructure();
+        
+        particleOffset += numberOParticlesPerFeature[f];
+    }
+
+    cleanClass(-3);
+}
 
 void Motl::cleanClass(float classNumber)
 {
